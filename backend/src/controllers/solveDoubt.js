@@ -1,19 +1,16 @@
 const { GoogleGenAI } = require("@google/genai");
 
+const solveDoubt = async (req, res) => {
+  try {
+    const { messages, title, description, testCases, startCode } = req.body;
 
-const solveDoubt = async(req , res)=>{
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_KEY });
 
-
-    try{
-
-        const {messages,title,description,testCases,startCode} = req.body;
-        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_KEY });
-       
-        async function main() {
-        const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: messages,
-        config: {
+    // MAIN GEMINI CALL
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: messages,  // your chat history (role + parts)
+      config: {
         systemInstruction: `
 You are an expert Data Structures and Algorithms (DSA) tutor specializing in helping users solve coding problems. Your role is strictly limited to DSA-related assistance only.
 
@@ -81,23 +78,23 @@ You are an expert Data Structures and Algorithms (DSA) tutor specializing in hel
 - Promote best coding practices
 
 Remember: Your goal is to help users learn and understand DSA concepts through the lens of the current problem, not just to provide quick answers.
-`},
+`
+,
+      },
     });
-     
-    res.status(201).json({
-        message:response.text
-    });
-    console.log(response.text);
-    }
 
-   await main();
-      
-    }
-    catch(err){
-        res.status(500).json({
-            message: "Internal server error"
-        });
-    }
-}
+    // ---- FIX: Extract correct Gemini text ----
+    const aiText =
+      response?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "I'm sorry, I couldn't generate a response.";
+
+    console.log("AI Response:", aiText);
+
+    return res.status(201).json({ message: aiText });
+  } catch (err) {
+    console.error("AI ERROR:", err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 module.exports = solveDoubt;
