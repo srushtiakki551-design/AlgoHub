@@ -255,7 +255,25 @@ const submittedProblem = async(req,res)=>{
 }
 
 
+const allSubmissions = async(req,res)=>{
+    try{
+     
+    const userId = req.result._id;
 
-module.exports = {createProblem,updateProblem,deleteProblem,getProblemById,getAllProblem,solvedAllProblembyUser,submittedProblem};
+   const ans = await Submission.find({userId});
+  
+  if(ans.length==0)
+    res.status(200).send("No Submission is present");
+
+  res.status(200).send(ans);
+
+  }
+  catch(err){
+     res.status(500).send("Internal Server Error");
+  }
+}
+
+
+module.exports = {createProblem,updateProblem,deleteProblem,getProblemById,getAllProblem,solvedAllProblembyUser,submittedProblem,allSubmissions};
 
 
